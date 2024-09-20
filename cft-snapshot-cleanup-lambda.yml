@@ -1,0 +1,96 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: CloudFormation template to create IAM role, Lambda function, and CloudWatch event for snapshot cleanup
+Resources:
+  SnapshotCleanupRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: Snapshot-cleanup_role
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: EBSFullAccessPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: ec2:*
+                Resource: '*'
+  SnapshotCleanupFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: unused_snapshot_cleanup
+      Handler: index.lambda_handler
+      Role: !GetAtt SnapshotCleanupRole.Arn
+      Code:
+        ZipFile: |
+          import boto3
+          import datetime
+
+          def delete_old_snapshots_with_tag(tag_key, tag_value, retention_days):
+              """
+              Deletes AWS snapshots older than the specified retention period and having a specific tag.
+
+              Args:
+                  tag_key (str): The key of the tag to filter snapshots.
+                  tag_value (str): The value of the tag to filter snapshots.
+                  retention_days (int): The retention period in days.
+
+              Returns:
+                  None
+              """
+              session = boto3.Session()
+
+              # Get all regions
+              ec2_regions = session.get_available_regions('ec2')
+
+              for region in ec2_regions:
+                  ec2_client = session.client('ec2', region_name=region)
+
+                  # Calculate the date limit
+                  date_limit = datetime.datetime.now() - datetime.timedelta(days=retention_days)
+
+                  # Get all snapshots owned by the account
+                  snapshots = ec2_client.describe_snapshots(OwnerIds=['self'])['Snapshots']
+
+                  # Iterate over snapshots and delete if older than the date limit and have the specified tag
+                  for snapshot in snapshots:
+                      snapshot_date = snapshot['StartTime']
+                      if snapshot_date < date_limit:
+                          snapshot_id = snapshot['SnapshotId']
+                          tags = snapshot.get('Tags', [])
+                          for tag in tags:
+                              if tag['Key'] == tag_key and tag['Value'] == tag_value:
+                                  ec2_client.delete_snapshot(SnapshotId=snapshot_id)
+                                  print(f"Deleted snapshot {snapshot_id} in region {region} created on {snapshot_date} with tag {tag_key}={tag_value}")
+                      else:
+                          print(f"Unable to delete snapshot {snapshot_id} in region {region} created on {snapshot_date} with tag {tag_key}={tag_value}")
+
+      Runtime: python3.8
+      Timeout: 300
+      Description: Lambda function to clean up unused snapshots
+      MemorySize: 128
+      Tags:
+        - Key: Name
+          Value: unused_snapshot_cleanup
+  SnapshotCleanupRule:
+    Type: AWS::Events::Rule
+    Properties:
+      Name: Snapshot-cleanup-rule
+      Description: CloudWatch event rule for Snapshot cleanup
+      ScheduleExpression: rate(24 hours)
+      State: ENABLED
+      Targets:
+        - Arn: !GetAtt SnapshotCleanupFunction.Arn
+          Id: SnapshotCleanupTarget
+  EbsCleanupPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref SnapshotCleanupFunction
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt SnapshotCleanupRule.Arn
