@@ -1,0 +1,33 @@
+trigger:
+- main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+steps:
+- script: echo "Hello, world!"
+  displayName: 'Run a one-line script'
+
+- script: |
+    echo "Add other tasks to build, test, and deploy your project."
+    echo "See https://aka.ms/yaml"
+  displayName: 'Run a multi-line script'
+
+- script: |
+    sudo apt-get update
+    sudo apt-get install -y awscli
+  displayName: 'Install AWS CLI'
+
+- script: |
+    aws ec2 describe-instances --query 'Reservations[*].Instances[*].InstanceId' --output text > instance_ids.txt
+  displayName: 'List EC2 instances'
+
+- script: |
+    for instance_id in $(cat instance_ids.txt); do
+      aws ssm send-command \
+        --instance-ids $instance_id \
+        --document-name "AWS-RunShellScript" \
+        --comment "Running Python script" \
+        --parameters 'commands=["cd ./automation && python HOTS_Checklist.py"]'
+    done
+  displayName: 'Execute Python script on EC2 instances'
