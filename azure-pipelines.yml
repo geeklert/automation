@@ -1,0 +1,36 @@
+trigger:
+- main
+
+pool:
+  vmImage: ubuntu-latest
+
+steps:
+- name: Checkout repository
+  uses: actions/checkout@v2
+
+- name: Install AWS CLI
+  run: |
+    sudo apt-get update
+    sudo apt-get install -y awscli
+
+- name: Configure AWS credentials
+  uses: aws-actions/configure-aws-credentials@v1
+  with:
+    aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+    aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    aws-region: us-east-1
+
+- name: List EC2 instances
+  id: list_instances
+  run: |
+    aws ec2 describe-instances --query 'Reservations[*].Instances[*].InstanceId' --output text > instance_ids.txt
+
+- name: Execute Python script on EC2 instances
+  run: |
+    for instance_id in $(cat instance_ids.txt); do
+      aws ssm send-command \
+        --instance-ids $instance_id \
+        --document-name "AWS-RunShellScript" \
+        --comment "Running Python script" \
+        --parameters 'commands=["cd ./automation && python HOTS_Checklist.py"]'
+    done
