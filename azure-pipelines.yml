@@ -23,6 +23,12 @@ steps:
   displayName: 'check AWS CLI version'
 
 - script: |
+    aws configure set aws_access_key_id $(AWS_ACCESS_KEY_ID)
+    aws configure set aws_secret_access_key $(aws_secret_access_key)
+    aws configure set aws_session_token $(aws_session_token)
+  displayName: 'Configure AWS CLI'
+
+- script: |
     aws ec2 describe-instances --query 'Reservations[*].Instances[*].InstanceId' --output text > instance_ids.txt
   displayName: 'List EC2 instances'
 
