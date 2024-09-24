@@ -4,6 +4,9 @@ trigger:
 pool:
   vmImage: 'ubuntu-latest'
 
+variables:
+  AWS_EC2_METADATA_DISABLED: 'true'
+
 steps:
 - script: echo "Hello, world!"
   displayName: 'Run a one-line script'
