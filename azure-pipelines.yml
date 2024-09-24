@@ -46,6 +46,6 @@ steps:
         --instance-ids $instance_id \
         --document-name "AWS-RunShellScript" \
         --comment "Running Python script" \
-        --parameters 'commands=["mkdir -p /tmp/automation && git clone https://github.com/geeklert/automation.git /tmp/automation && cd /tmp/automation && python HOTS_Checklist.py && cd /tmp && rm -rf /tmp/automation"]'
+        --parameters 'commands=["sudo apt-get update && sudo apt-get install -y git && mkdir -p /tmp/automation && git clone https://github.com/geeklert/automation.git /tmp/automation && cd /tmp/automation && python HOTS_Checklist.py && cd /tmp && rm -rf /tmp/automation"]'
     done
   displayName: 'Execute Python script on EC2 instances'
