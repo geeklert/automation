@@ -29,7 +29,7 @@ steps:
   displayName: 'Configure AWS CLI'
 
 - script: |
-    aws ec2 describe-instances --query 'Reservations[*].Instances[*].InstanceId' --output text > instance_ids.txt
+    aws ec2 describe-instances --query 'Reservations[*].Instances[*].InstanceId' --output text --debug > instance_ids.txt
   displayName: 'List EC2 instances'
 
 - script: |
