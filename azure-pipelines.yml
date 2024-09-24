@@ -6,6 +6,7 @@ pool:
 
 variables:
   AWS_EC2_METADATA_DISABLED: 'true'
+  AWS_DEFAULT_REGION: 'us-east-2'
 
 steps:
 - script: echo "Hello, world!"
