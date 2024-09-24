@@ -19,6 +19,11 @@ steps:
   displayName: 'Install AWS CLI'
 
 - script: |
+    aws --version
+  displayName: 'check AWS CLI version'
+
+
+- script: |
     aws ec2 describe-instances --query 'Reservations[*].Instances[*].InstanceId' --output text > instance_ids.txt
   displayName: 'List EC2 instances'
 
