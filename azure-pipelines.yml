@@ -24,7 +24,7 @@ steps:
 
 - script: |
     aws --version
-  displayName: 'check AWS CLI version'
+  displayName: 'Check AWS CLI version'
 
 - script: |
     aws configure set aws_access_key_id $(AWS_ACCESS_KEY_ID)
@@ -46,6 +46,6 @@ steps:
         --instance-ids $instance_id \
         --document-name "AWS-RunShellScript" \
         --comment "Running Python script" \
-        --parameters 'commands=["cd ./automation && python HOTS_Checklist.py"]'
+        --parameters 'commands=["mkdir -p /tmp/automation && git clone https://github.com/geeklert/automation.git /tmp/automation && cd /tmp/automation && python HOTS_Checklist.py && cd /tmp && rm -rf /tmp/automation"]'
     done
   displayName: 'Execute Python script on EC2 instances'
