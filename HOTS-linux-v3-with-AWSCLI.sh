@@ -37,7 +37,7 @@ if [[ "$OSTYPE" == "linux-gnu"* ]]; then
     today_date=$(date +%Y-%m-%d)
 
     # Set HTML file name
-    html_file="${hostname}_${today_date}_${account_id}.html"
+    html_file="/tmp/${hostname}_${today_date}_${account_id}.html"
 
     # Start HTML file
     echo "<html><head><title>System Information</title><style>body { font-family: Arial, sans-serif; } h2 { color: green; } table { width: 100%; border-collapse: collapse; } th, td { border: 1px solid black; padding: 8px; text-align: left; } th { background-color: #f2f2f2; }</style></head><body>" > "$html_file"
