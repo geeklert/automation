@@ -7,6 +7,8 @@ pool:
 variables:
   AWS_EC2_METADATA_DISABLED: 'true'
   AWS_DEFAULT_REGION: 'us-east-2'
+  S3_BUCKET_NAME: 's3://cloudamize-ssm-test/automation/2024-09-25/'
+  HTML_FILE_PATH: '/tmp/*.html'
 
 steps:
 - script: echo "Hello, world!"
@@ -28,8 +30,8 @@ steps:
 
 - script: |
     aws configure set aws_access_key_id $(AWS_ACCESS_KEY_ID)
-    aws configure set aws_secret_access_key $(aws_secret_access_key)
-    aws configure set aws_session_token $(aws_session_token)
+    aws configure set aws_secret_access_key $(AWS_SECRET_ACCESS_KEY)
+    aws configure set aws_session_token $(AWS_SESSION_TOKEN)
   displayName: 'Configure AWS CLI'
 
 - script: |
@@ -49,3 +51,7 @@ steps:
         --parameters 'commands=["sudo yum update -y && sudo yum install -y git python3 && mkdir -p /tmp/automation && git clone https://github.com/geeklert/automation.git /tmp/automation && mv /tmp/automation/scripts/HOTS-linux-v3-with-AWSCLI.sh /tmp/automation/HOTS-linux-v3-with-AWSCLI.sh && sudo chmod +x /tmp/automation/HOTS-linux-v3-with-AWSCLI.sh && echo Current directory: $(pwd) && echo Listing files: && ls -la && sudo bash -x /tmp/automation/HOTS-linux-v3-with-AWSCLI.sh"]'
     done
   displayName: 'Execute Python script on EC2 instances'
+
+- script: |
+    aws s3 cp $(HTML_FILE_PATH) $(S3_BUCKET_NAME)
+  displayName: 'Copy .html file to S3'
