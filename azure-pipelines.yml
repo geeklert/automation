@@ -4,6 +4,10 @@ trigger:
 pool:
   vmImage: 'ubuntu-latest'
 
+variables:
+  AWS_EC2_METADATA_DISABLED: 'true'
+  AWS_DEFAULT_REGION: 'us-east-2'
+
 steps:
 - script: echo "Hello, world!"
   displayName: 'Run a one-line script'
@@ -19,7 +23,21 @@ steps:
   displayName: 'Install AWS CLI'
 
 - script: |
-    aws ec2 describe-instances --query 'Reservations[*].Instances[*].InstanceId' --output text > instance_ids.txt
+    aws --version
+  displayName: 'Check AWS CLI version'
+
+- script: |
+    aws configure set aws_access_key_id $(AWS_ACCESS_KEY_ID)
+    aws configure set aws_secret_access_key $(aws_secret_access_key)
+    aws configure set aws_session_token $(aws_session_token)
+  displayName: 'Configure AWS CLI'
+
+- script: |
+    aws s3 ls
+  displayName: 'AWS CLI precheck'
+
+- script: |
+    aws ec2 describe-instances --query 'Reservations[*].Instances[*].InstanceId' --output text --debug > instance_ids.txt
   displayName: 'List EC2 instances'
 
 - script: |
@@ -28,6 +46,6 @@ steps:
         --instance-ids $instance_id \
         --document-name "AWS-RunShellScript" \
         --comment "Running Python script" \
-        --parameters 'commands=["cd ./automation && python HOTS_Checklist.py"]'
+        --parameters 'commands=["sudo yum update -y && sudo yum install -y git python3 && mkdir -p /tmp/automation && git clone https://github.com/geeklert/automation.git /tmp/automation && mv /tmp/automation/scripts/HOTS-linux-v3-with-AWSCLI.sh /tmp/automation/HOTS-linux-v3-with-AWSCLI.sh && sudo chmod +x /tmp/automation/HOTS-linux-v3-with-AWSCLI.sh && echo Current directory: $(pwd) && echo Listing files: && ls -la && sudo bash -x /tmp/automation/HOTS-linux-v3-with-AWSCLI.sh"]'
     done
   displayName: 'Execute Python script on EC2 instances'
