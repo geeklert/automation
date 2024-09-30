@@ -15,6 +15,8 @@ automation_dir="/tmp/automation"
 if [ -d "$automation_dir" ]; then
     print_green "Emptying /tmp/automation directory"
     rm -rf "${automation_dir:?}"/*
+else
+    mkdir -p "$automation_dir"
 fi
 
 # Detect OS
