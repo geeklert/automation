@@ -10,6 +10,13 @@ append_to_html() {
     echo "$1" >> "$html_file"
 }
 
+# Empty /tmp/automation directory if it exists
+automation_dir="/tmp/automation"
+if [ -d "$automation_dir" ]; then
+    print_green "Emptying /tmp/automation directory"
+    rm -rf "${automation_dir:?}"/*
+fi
+
 # Detect OS
 if [[ "$OSTYPE" == "linux-gnu"* ]]; then
     print_green "Running on Linux"
