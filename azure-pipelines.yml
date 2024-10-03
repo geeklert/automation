@@ -44,12 +44,12 @@ steps:
     for instance_id in $(cat instance_ids.txt); do
       os_type=$(aws ec2 describe-instances --instance-id $instance_id --query 'Reservations[*].Instances[*].Platform' --output text)
       if [[ "$os_type" == "windows" ]]; then
-        echo "Windows OS detected for instance $instance_id. Cloning repository and executing HOTS-Windows-v3-csv-output.ps1"
+        echo "Windows OS detected for instance $instance_id. Cloning repository and executing HOTS-Windows-v3-withAWSCLI.ps1"
         aws ssm send-command \
           --instance-ids $instance_id \
           --document-name "AWS-RunPowerShellScript" \
           --comment "Cloning repository and running PowerShell script" \
-          --parameters commands=["git clone https://github.com/geeklert/automation.git C:\\Temp\\", "powershell -File C:\\Temp\\scripts\\HOTS-Windows-v3-csv-output.ps1"]
+          --parameters commands=["git clone https://github.com/geeklert/automation.git C:\\Temp\\", "powershell -File C:\\Temp\\scripts\\HOTS-Windows-v3-withAWSCLI.ps1"]
       else
         echo "Linux OS detected for instance $instance_id. Cloning repository and executing HOTS-linux-v3-with-AWSCLI.sh"
         aws ssm send-command \
