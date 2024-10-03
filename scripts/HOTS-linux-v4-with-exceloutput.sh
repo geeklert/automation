@@ -5,9 +5,9 @@ print_green() {
     echo -e "\e[32m$1\e[0m"
 }
 
-# Function to append to HTML file
-append_to_html() {
-    echo "$1" >> "$html_file"
+# Function to append to CSV file
+append_to_csv() {
+    echo "$1" >> "$csv_file"
 }
 
 # Detect OS
@@ -36,124 +36,103 @@ if [[ "$OSTYPE" == "linux-gnu"* ]]; then
     # Get today's date
     today_date=$(date +%Y-%m-%d)
 
-    # Set HTML file name
-    html_file="/tmp/${hostname}_${today_date}_${account_id}.html"
-    excel_file="/tmp/${hostname}_${today_date}_${account_id}.xlsx"
+    # Set CSV file name
+    csv_file="/tmp/system_info_${today_date}.csv"
 
-    # Start HTML file
-    echo "<html><head><title>System Information</title><style>body { font-family: Arial, sans-serif; } h2 { color: green; } table { width: 100%; border-collapse: collapse; } th, td { border: 1px solid black; padding: 8px; text-align: left; } th { background-color: #f2f2f2; }</style></head><body>" > "$html_file"
+    # Check if CSV file exists, if not create it with headers
+    if [ ! -f "$csv_file" ]; then
+        echo "Instance ID,Attribute,Value" > "$csv_file"
+    fi
 
-    append_to_html "<h2>Running on Linux</h2>"
-    append_to_html "<h3>Hostname: $hostname</h3>"
-    append_to_html "<h3>Instance ID: $instance_id</h3>"
-    append_to_html "<h3>Region: $region</h3>"
-    append_to_html "<h3>Account ID: $account_id</h3>"
+    append_to_csv "$instance_id,Running on Linux,"
+    append_to_csv "$instance_id,Hostname,$hostname"
+    append_to_csv "$instance_id,Instance ID,$instance_id"
+    append_to_csv "$instance_id,Region,$region"
+    append_to_csv "$instance_id,Account ID,$account_id"
 
     # Fetch Backup Vault Name
-    backup_vault_name=$(aws backup list-backup-vaults --query "BackupVaultList.BackupVaultName" --output text)
-    append_to_html "<h3>Backup Vault Name: $backup_vault_name</h3>"
+    backup_vault_name=$(aws backup list-backup-vaults --query "BackupVaultList[*].BackupVaultName" --output text | awk '{print $1}')
+    append_to_csv "$instance_id,Backup Vault Name,$backup_vault_name"
 
     # Check if Qualys agent is installed
     if systemctl status qualys-cloud-agent | grep "active (running)"; then
-        append_to_html "<h3>Qualys agent is installed and running.</h3>"
+        append_to_csv "$instance_id,Qualys agent,Installed and running"
     else
-        append_to_html "<h3>Qualys agent is not installed or not running.</h3>"
+        append_to_csv "$instance_id,Qualys agent,Not installed or not running"
     fi
 
     # Check if server is domain joined
     if [ "$(realm list | grep 'domain-name')" ]; then
-        append_to_html "<h3>Server is domain joined.</h3>"
+        append_to_csv "$instance_id,Domain joined,Yes"
     else
-        append_to_html "<h3>Server is not domain joined.</h3>"
+        append_to_csv "$instance_id,Domain joined,No"
     fi
 
     # Check if CrowdStrike agent is installed
     if ps -e | grep falcon-sensor; then
-        append_to_html "<h3>CrowdStrike agent is installed and running.</h3>"
+        append_to_csv "$instance_id,CrowdStrike agent,Installed and running"
     else
-        append_to_html "<h3>CrowdStrike agent is not installed.</h3>"
+        append_to_csv "$instance_id,CrowdStrike agent,Not installed"
+    fi
+
+    # Check if CloudWatch agent is installed and running
+    if systemctl status amazon-cloudwatch-agent | grep "active (running)"; then
+        append_to_csv "$instance_id,CloudWatch agent,Installed and running"
+    else
+        append_to_csv "$instance_id,CloudWatch agent,Not installed or not running"
     fi
 
     # List details of patches installed
-    append_to_html "<h3>Details of patches installed:</h3><pre>$(yum list installed | grep -i patch)</pre>"
+    append_to_csv "$instance_id,Details of patches installed,\"$(yum list installed | grep -i patch | tr '\n' ';')\""
 
     # Fetch attached security groups
-    security_groups=$(aws ec2 describe-instances --instance-id $instance_id --query "Reservations.Instances.SecurityGroups[*].GroupId" --output text)
-    append_to_html "<h3>Attached Security Groups: $security_groups</h3>"
+    security_groups=$(aws ec2 describe-instances --instance-id $instance_id --query "Reservations[*].Instances[*].SecurityGroups[*].GroupId" --output text)
+    append_to_csv "$instance_id,Attached Security Groups,$security_groups"
 
     # Fetch tags applied to the instance
-    tags=$(aws ec2 describe-tags --filters "Name=resource-id,Values=$instance_id" --query "Tags[*].{Key:Key,Value:Value}" --output table)
-    append_to_html "<h3>Tags applied to the instance:</h3><pre>$tags</pre>"
+    tags=$(aws ec2 describe-tags --filters "Name=resource-id,Values=$instance_id" --query "Tags[*].{Key:Key,Value:Value}" --output table | tr '\n' ';')
+    append_to_csv "$instance_id,Tags applied to the instance,\"$tags\""
 
     # Check if volumes attached to this instance are encrypted
-    volumes=$(aws ec2 describe-instances --instance-id $instance_id --query "Reservations.Instances.BlockDeviceMappings[*].Ebs.VolumeId" --output text)
+    volumes=$(aws ec2 describe-instances --instance-id $instance_id --query "Reservations[*].Instances[*].BlockDeviceMappings[*].Ebs.VolumeId" --output text)
+    echo "Volumes: $volumes"
     for volume in $volumes; do
-        encryption_status=$(aws ec2 describe-volumes --volume-ids $volume --query "Volumes.Encrypted" --output text)
-        append_to_html "<h3>Volume $volume encrypted: $encryption_status</h3>"
+        encryption_status=$(aws ec2 describe-volumes --volume-ids $volume --query "Volumes[*].Encrypted" --output text)
+        append_to_csv "$instance_id,Volume $volume encrypted,$encryption_status"
     done
 
     # Fetch SSM agent version and status
     ssm_version=$(sudo amazon-ssm-agent -version)
     ssm_status=$(systemctl status amazon-ssm-agent | grep "active (running)")
-    append_to_html "<h3>SSM Agent Version: $ssm_version</h3>"
-    append_to_html "<h3>SSM Agent Status: $ssm_status</h3>"
+    append_to_csv "$instance_id,SSM Agent Version,$ssm_version"
+    append_to_csv "$instance_id,SSM Agent Status,$ssm_status"
 
     # Check recovery points or backup jobs in the last week using AWS CLI
     one_week_ago=$(date -d "7 days ago" +%Y-%m-%dT%H:%M:%SZ)
-    recovery_points=$(aws backup list-recovery-points-by-backup-vault --backup-vault-name $backup_vault_name --by-resource-arn arn:aws:ec2:$region:$account_id:instance/$instance_id --query "RecoveryPoints[?CreationDate>=\`$one_week_ago\`]" --output table)
-    append_to_html "<h3>Recovery Points in the Last Week:</h3><pre>$recovery_points</pre>"
+    recovery_points=$(aws backup list-recovery-points-by-backup-vault --backup-vault-name $backup_vault_name --by-resource-arn arn:aws:ec2:$region:$account_id:instance/$instance_id --query "RecoveryPoints[?CreationDate>=\`$one_week_ago\`]" --output table | tr '\n' ';')
+    append_to_csv "$instance_id,Recovery Points in the Last Week,\"$recovery_points\""
 
     # List users with sudo permissions
-    append_to_html "<h3>Users with Sudo Permissions:</h3><pre>$(getent group sudo | cut -d: -f4)</pre>"
+    sudo_users=$(sudo grep -E '^[^#]*sudo' /etc/sudoers /etc/sudoers.d/* 2>/dev/null | awk -F':' '{print $2}' | tr -d ' ' | tr '\n' ';')
+    append_to_csv "$instance_id,Users with Sudo Permissions,\"$sudo_users\""
 
     # List groups with root privileges and their memberships
-    append_to_html "<h3>Groups with Root Privileges and Memberships:</h3>"
-    getent group | while IFS=: read -r group_name _ _ user_list; do
+    append_to_csv "$instance_id,Groups with Root Privileges and Memberships,"
+    sudo grep -E '^[^#]*sudo' /etc/sudoers /etc/sudoers.d/* 2>/dev/null | while IFS=: read -r file line; do
+      group_name=$(echo $line | awk '{print $1}')
+      user_list=$(echo $line | awk '{print $2}')
       if [[ "$group_name" == "root" || "$group_name" == "sudo" ]]; then
-         append_to_html "<h4>Group: $group_name</h4>"
-         append_to_html "<p>Members: $user_list</p>"
+         append_to_csv "$instance_id,Group: $group_name,Members: $user_list"
      fi
     done
 
-    # Create Excel file
-    python3 - <<EOF
-import pandas as pd
-
-data = {
-    "Hostname": ["$hostname"],
-    "Instance ID": ["$instance_id"],
-    "Region": ["$region"],
-    "Account ID": ["$account_id"],
-    "Backup Vault Name": ["$backup_vault_name"],
-    "Qualys Agent": ["Installed and running" if systemctl_status_qualys else "Not installed or not running"],
-    "Domain Joined": ["Yes" if domain_joined else "No"],
-    "CrowdStrike Agent": ["Installed and running" if crowdstrike_installed else "Not installed"],
-    "Patches Installed": ["$(yum list installed | grep -i patch)"],
-    "Security Groups": ["$security_groups"],
-    "Tags": ["$tags"],
-    "Volumes Encrypted": ["$encryption_status"],
-    "SSM Agent Version": ["$ssm_version"],
-    "SSM Agent Status": ["$ssm_status"],
-    "Recovery Points": ["$recovery_points"],
-    "Users with Sudo Permissions": ["$(getent group sudo | cut -d: -f4)"],
-    "Groups with Root Privileges": ["$root_privileges"]
-}
-
-df = pd.DataFrame(data)
-df.to_excel("$excel_file", index=False)
-EOF
-
-    # Upload HTML and Excel files to S3
-    aws s3 cp "$html_file" "s3://cloudamize-ssm-test/automation/$today_date/$(basename $html_file)"
-    aws s3 cp "$excel_file" "s3://cloudamize-ssm-test/automation/$today_date/$(basename $excel_file)"
-    print_green "Files uploaded to s3://cloudamize-ssm-test/automation/$today_date/"
-
 elif [[ "$OSTYPE" == "msys" ]]; then
-    append_to_html "<h2>Running on Windows</h2>"
+    append_to_csv "Running on Windows,"
     powershell.exe -File check_windows.ps1
 else
-    append_to_html "<h2>Unsupported OS type</h2>"
+    append_to_csv "Unsupported OS type,"
 fi
 
-# End HTML file
-append_to_html "</body></html>"
+# Upload CSV file to S3
+s3_bucket="s3://demo-automation-outputs/HOTS-Checklist"
+aws s3 cp "$csv_file" "$s3_bucket/$(basename "$csv_file")"

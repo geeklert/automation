@@ -75,6 +75,13 @@ if [[ "$OSTYPE" == "linux-gnu"* ]]; then
         append_to_html "<tr><td>CrowdStrike agent</td><td>Not installed</td></tr>"
     fi
 
+    # Check if CloudWatch agent is installed and running
+    if systemctl status amazon-cloudwatch-agent | grep "active (running)"; then
+        append_to_html "<tr><td>CloudWatch agent</td><td>Installed and running</td></tr>"
+    else
+        append_to_html "<tr><td>CloudWatch agent</td><td>Not installed or not running</td></tr>"
+    fi
+
     # List details of patches installed
     append_to_html "<tr><td>Details of patches installed</td><td><pre>$(yum list installed | grep -i patch)</pre></td></tr>"
 

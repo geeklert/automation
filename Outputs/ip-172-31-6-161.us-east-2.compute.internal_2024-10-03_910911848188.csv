@@ -1,0 +1,20 @@
+Attribute,Value
+Running on Linux,
+Hostname,ip-172-31-6-161.us-east-2.compute.internal
+Instance ID,i-0fb01babbc2a28ac1
+Region,us-east-2
+Account ID,910911848188
+Backup Vault Name,Default
+Qualys agent,Not installed or not running
+Domain joined,No
+CrowdStrike agent,Not installed
+CloudWatch agent,Installed and running
+Details of patches installed,"kernel-livepatch-repo-s3.noarch        2023.3.20240304-0.amzn2023         @System     ;kpatch-runtime.noarch                  0.9.7-13.amzn2023.0.1              @System     ;python3-jsonpatch.noarch               1.21-14.amzn2023.0.2               @System     ;"
+Attached Security Groups,sg-0b7f05f267ce76d28
+Tags applied to the instance,"----------------------------;|       DescribeTags       |;+--------------+-----------+;|      Key     |   Value   |;+--------------+-----------+;|  CreatedBy   |  Kuldeep  |;|  Environment |  dev      |;|  Terraform   |  true     |;+--------------+-----------+;"
+Volume vol-0bb484ae58a749bc3 encrypted,True
+SSM Agent Version,SSM Agent version: 3.2.2222.0
+SSM Agent Status,     Active: active (running) since Wed 2024-10-02 12:47:42 UTC; 22h ago
+Recovery Points in the Last Week,""
+Users with Sudo Permissions,""
+Groups with Root Privileges and Memberships,

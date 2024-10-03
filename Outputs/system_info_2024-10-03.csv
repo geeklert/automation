@@ -1,0 +1,20 @@
+Instance ID,Attribute,Value
+i-0fb01babbc2a28ac1,Running on Linux,
+i-0fb01babbc2a28ac1,Hostname,ip-172-31-6-161.us-east-2.compute.internal
+i-0fb01babbc2a28ac1,Instance ID,i-0fb01babbc2a28ac1
+i-0fb01babbc2a28ac1,Region,us-east-2
+i-0fb01babbc2a28ac1,Account ID,910911848188
+i-0fb01babbc2a28ac1,Backup Vault Name,Default
+i-0fb01babbc2a28ac1,Qualys agent,Not installed or not running
+i-0fb01babbc2a28ac1,Domain joined,No
+i-0fb01babbc2a28ac1,CrowdStrike agent,Not installed
+i-0fb01babbc2a28ac1,CloudWatch agent,Installed and running
+i-0fb01babbc2a28ac1,Details of patches installed,"kernel-livepatch-repo-s3.noarch        2023.3.20240304-0.amzn2023         @System     ;kpatch-runtime.noarch                  0.9.7-13.amzn2023.0.1              @System     ;python3-jsonpatch.noarch               1.21-14.amzn2023.0.2               @System     ;"
+i-0fb01babbc2a28ac1,Attached Security Groups,sg-0b7f05f267ce76d28
+i-0fb01babbc2a28ac1,Tags applied to the instance,"----------------------------;|       DescribeTags       |;+--------------+-----------+;|      Key     |   Value   |;+--------------+-----------+;|  CreatedBy   |  Kuldeep  |;|  Environment |  dev      |;|  Terraform   |  true     |;+--------------+-----------+;"
+i-0fb01babbc2a28ac1,Volume vol-0bb484ae58a749bc3 encrypted,True
+i-0fb01babbc2a28ac1,SSM Agent Version,SSM Agent version: 3.2.2222.0
+i-0fb01babbc2a28ac1,SSM Agent Status,     Active: active (running) since Wed 2024-10-02 12:47:42 UTC; 22h ago
+i-0fb01babbc2a28ac1,Recovery Points in the Last Week,""
+i-0fb01babbc2a28ac1,Users with Sudo Permissions,""
+i-0fb01babbc2a28ac1,Groups with Root Privileges and Memberships,
