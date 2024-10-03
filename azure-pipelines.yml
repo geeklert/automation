@@ -29,7 +29,7 @@ steps:
 - script: |
     aws configure set aws_access_key_id $(AWS_ACCESS_KEY_ID)
     aws configure set aws_secret_access_key $(aws_secret_access_key)
-    aws configure set aws_session_token $(aws_session_token)
+    #aws configure set aws_session_token $(aws_session_token)
   displayName: 'Configure AWS CLI'
 
 - script: |
@@ -46,6 +46,6 @@ steps:
         --instance-ids $instance_id \
         --document-name "AWS-RunShellScript" \
         --comment "Running Python script" \
-        --parameters 'commands=["sudo yum update -y && sudo yum install -y git python3 && mkdir -p /tmp/automation && git clone https://github.com/geeklert/automation.git /tmp/automation && mv /tmp/automation/scripts/HOTS-linux-v3-with-AWSCLI.sh /tmp/automation/HOTS-linux-v3-with-AWSCLI.sh && sudo chmod +x /tmp/automation/HOTS-linux-v3-with-AWSCLI.sh && echo Current directory: $(pwd) && echo Listing files: && ls -la && sudo bash -x /tmp/automation/HOTS-linux-v3-with-AWSCLI.sh"]'
+        --parameters 'commands=["sudo yum update -y && sudo yum install -y git python3 && mkdir -p /tmp/automation && git clone https://github.com/geeklert/automation.git /tmp/automation && mv /tmp/automation/scripts/HOTS-linux-v4-with-AWSCLI.sh /tmp/automation/HOTS-linux-v4-with-AWSCLI.sh && sudo chmod +x /tmp/automation/HOTS-linux-v4-with-AWSCLI.sh && echo Current directory: $(pwd) && echo Listing files: && ls -la && sudo bash -x /tmp/automation/HOTS-linux-v4-with-AWSCLI.sh"]'
     done
   displayName: 'Execute Python script on EC2 instances'
