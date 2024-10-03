@@ -46,6 +46,6 @@ steps:
         --instance-ids $instance_id \
         --document-name "AWS-RunShellScript" \
         --comment "Running Python script" \
-        --parameters 'commands=["sudo yum update -y && sudo yum install -y git python3 && mkdir -p /tmp/automation && git clone https://github.com/geeklert/automation.git /tmp/automation && mv /tmp/automation/scripts/HOTS-linux-v4-with-AWSCLI.sh /tmp/automation/HOTS-linux-v4-with-AWSCLI.sh && sudo chmod +x /tmp/automation/HOTS-linux-v4-with-AWSCLI.sh && echo Current directory: $(pwd) && echo Listing files: && ls -la && sudo bash -x /tmp/automation/HOTS-linux-v4-with-AWSCLI.sh"]'
+        --parameters 'commands=["sudo yum update -y && sudo yum install -y git python3 && mkdir -p /tmp/automation && git clone https://github.com/geeklert/automation.git /tmp/automation && mv /tmp/automation/scripts/HOTS-linux-v4-with-AWSCLI.sh /tmp/automation/HOTS-linux-v4-with-AWSCLI.sh && sudo chmod +x /tmp/automation/HOTS-linux-v4-with-AWSCLI.sh && echo Current directory: $(pwd) && echo Listing files: && ls -la && sudo bash -x /tmp/automation/HOTS-linux-v4-with-AWSCLI.sh && sudo bash -x /tmp/automation/scripts/HOTS-linux-v4-with-exceloutput.sh"]'
     done
   displayName: 'Execute Python script on EC2 instances'
