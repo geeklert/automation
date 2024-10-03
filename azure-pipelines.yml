@@ -28,8 +28,8 @@ steps:
 
 - script: |
     aws configure set aws_access_key_id $(AWS_ACCESS_KEY_ID)
-    aws configure set aws_secret_access_key $(aws_secret_access_key)
-    #aws configure set aws_session_token $(aws_session_token)
+    aws configure set aws_secret_access_key $(AWS_SECRET_ACCESS_KEY)
+    #aws configure set aws_session_token $(AWS_SESSION_TOKEN)
   displayName: 'Configure AWS CLI'
 
 - script: |
@@ -42,10 +42,21 @@ steps:
 
 - script: |
     for instance_id in $(cat instance_ids.txt); do
-      aws ssm send-command \
-        --instance-ids $instance_id \
-        --document-name "AWS-RunShellScript" \
-        --comment "Running Python script" \
-        --parameters 'commands=["sudo yum update -y && sudo yum install -y git python3 && mkdir -p /tmp/automation && git clone https://github.com/geeklert/automation.git /tmp/automation && mv /tmp/automation/scripts/HOTS-linux-v4-with-AWSCLI.sh /tmp/automation/HOTS-linux-v4-with-AWSCLI.sh && sudo chmod +x /tmp/automation/HOTS-linux-v4-with-AWSCLI.sh && echo Current directory: $(pwd) && echo Listing files: && ls -la && sudo bash -x /tmp/automation/HOTS-linux-v4-with-AWSCLI.sh && sudo bash -x /tmp/automation/scripts/HOTS-linux-v4-with-exceloutput.sh"]'
+      os_type=$(aws ec2 describe-instances --instance-id $instance_id --query 'Reservations[*].Instances[*].Platform' --output text)
+      if [[ "$os_type" == "windows" ]]; then
+        echo "Windows OS detected for instance $instance_id. Cloning repository and executing HOTS-Windows-v3-csv-output.ps1"
+        aws ssm send-command \
+          --instance-ids $instance_id \
+          --document-name "AWS-RunPowerShellScript" \
+          --comment "Cloning repository and running PowerShell script" \
+          --parameters commands=["git clone https://github.com/geeklert/automation.git C:\\Temp\\", "powershell -File C:\\Temp\\scripts\\HOTS-Windows-v3-csv-output.ps1"]
+      else
+        echo "Linux OS detected for instance $instance_id. Cloning repository and executing HOTS-linux-v3-with-AWSCLI.sh"
+        aws ssm send-command \
+          --instance-ids $instance_id \
+          --document-name "AWS-RunShellScript" \
+          --comment "Cloning repository and running Shell script" \
+          --parameters commands=["git clone https://github.com/geeklert/automation.git /tmp/", "bash /tmp/scripts/HOTS-linux-v4-with-exceloutput.sh"]
+      fi
     done
-  displayName: 'Execute Python script on EC2 instances'
+  displayName: 'Clone repository and execute scripts on EC2 instances based on OS type'
